@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CueStudio — Cuemath Social Media Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cue-orange:#FF6B35;--cue-dark:#1A1A2E;--cue-purple:#7C3AED;
+  --bg:#F8F7FF;--surface:#fff;--border:#E5E7EB;--muted:#6B7280;
+  --text:#111827;--text2:#6B7280;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+.studio-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#FF6B35;letter-spacing:-0.5px}
+.logo span{color:var(--text)}
+.badge{font-size:10px;background:#FF6B35;color:#fff;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:0.5px}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#22c55e}
+
+.main-layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 53px)}
+
+/* LEFT PANEL */
+.left-panel{background:var(--surface);border-right:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+.panel-label{font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px}
+
+textarea,input[type=text]{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:10px;outline:none;transition:border-color 0.15s}
+textarea:focus,input[type=text]:focus{border-color:#FF6B35}
+#ideaInput{width:100%;padding:10px 12px;resize:none;height:90px;line-height:1.5}
+
+.format-pills{display:flex;gap:6px}
+.pill{border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;cursor:pointer;color:var(--text2);background:transparent;transition:all 0.15s;font-family:'DM Sans',sans-serif}
+.pill.active{background:#FF6B35;color:#fff;border-color:#FF6B35;font-weight:500}
+
+.tone-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tone-btn{border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;color:var(--text2);background:transparent;text-align:left;transition:all 0.15s;font-family:'DM Sans',sans-serif}
+.tone-btn.active{border-color:#7C3AED;color:#7C3AED;background:rgba(124,58,237,0.06);font-weight:500}
+
+.palette-row{display:flex;gap:8px;align-items:center}
+.swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.15s;flex-shrink:0}
+.swatch.active{transform:scale(1.2);border-color:#111}
+
+.gen-btn{width:100%;padding:12px;background:linear-gradient(135deg,#FF6B35,#E85D26);color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity 0.2s;letter-spacing:0.3px}
+.gen-btn:hover{opacity:0.88}
+.gen-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+/* RIGHT PANEL */
+.right-panel{padding:20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+
+.slides-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;align-items:flex-start}
+.slide-thumb{position:relative;flex-shrink:0;cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid transparent;transition:all 0.2s}
+.slide-thumb.active{border-color:#FF6B35}
+.slide-thumb:hover:not(.active){border-color:#ccc}
+.thumb-inner{width:96px;height:96px;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8px;text-align:center;font-size:7.5px;line-height:1.3;font-family:'Syne',sans-serif;font-weight:700;color:#fff;position:relative;overflow:hidden}
+.thumb-num{position:absolute;top:5px;right:6px;font-size:8px;opacity:0.65;font-family:'DM Sans',sans-serif}
+
+.preview-area{display:flex;justify-content:center;gap:24px;align-items:flex-start}
+
+.slide-preview{border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.14)}
+.slide-canvas{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:28px;text-align:center;position:relative;overflow:hidden}
+
+.edit-sidebar{width:210px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+.edit-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px}
+.edit-field{margin-bottom:8px}
+.edit-field label{font-size:11px;color:var(--text2);display:block;margin-bottom:4px}
+.edit-field input[type=text]{width:100%;padding:6px 8px}
+.edit-field textarea{width:100%;padding:6px 8px;resize:none}
+
+.action-row{display:flex;gap:6px}
+.sm-btn{flex:1;padding:6px 4px;border:1px solid var(--border);background:transparent;border-radius:7px;font-size:11px;cursor:pointer;color:var(--text2);font-family:'DM Sans',sans-serif;transition:all 0.15s}
+.sm-btn:hover{background:var(--bg);color:var(--text)}
+.sm-btn.primary{background:#FF6B35;color:#fff;border-color:#FF6B35;font-weight:500}
+.sm-btn.primary:hover{opacity:0.85}
+.sm-btn.danger{color:#ef4444}
+
+.nav-dots{display:flex;gap:5px;flex-wrap:wrap}
+.dot{width:6px;height:6px;border-radius:50%;background:#ddd;cursor:pointer;transition:all 0.2s}
+.dot.active{background:#FF6B35;width:16px;border-radius:3px}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;color:var(--text2);text-align:center;min-height:400px}
+.empty-icon{font-size:40px;opacity:0.25}
+.empty-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text)}
+.empty-sub{font-size:13px;max-width:240px;line-height:1.6}
+
+.loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:14px;color:var(--text2);min-height:400px}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:#FF6B35;border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;animation:fadepulse 1.5s ease infinite}
+@keyframes fadepulse{0%,100%{opacity:0.4}50%{opacity:1}}
+
+.section-header{display:flex;align-items:center;justify-content:space-between}
+.slide-count-badge{font-size:10px;color:var(--text2);padding:3px 8px;background:var(--bg);border-radius:20px;border:1px solid var(--border)}
+.export-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);transition:all 0.15s}
+.export-btn.primary{background:#1A1A2E;color:#fff;border-color:#1A1A2E}
+.export-btn:hover:not(.primary){background:var(--bg)}
+.export-btn.primary:hover{opacity:0.85}
+
+.add-slide-btn{flex-shrink:0;width:96px;height:96px;border:1.5px dashed #ccc;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:var(--text2);font-size:11px;background:transparent;font-family:'DM Sans',sans-serif;transition:all 0.15s}
+.add-slide-btn:hover{border-color:#FF6B35;color:#FF6B35}
+
+.watermark{position:absolute;bottom:7px;right:10px;font-size:7px;opacity:0.45;font-family:'Syne',sans-serif;font-weight:800;letter-spacing:1.5px}
+.slide-accent-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.25)}
+.slide-top-bar{position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.25)}
+
+.caption-text{font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:6px}
+.hashtags{font-size:10px;color:#7C3AED;line-height:1.6}
+
+kbd{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10px;font-family:monospace;color:var(--text2)}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="studio-header">
+    <div class="logo">Cue<span>Studio</span></div>
+    <div class="badge">SOCIAL AI</div>
+    <div class="header-right">
+      Cuemath Brand Kit Active
+      <div class="status-dot"></div>
+    </div>
+  </div>
+
+  <div class="main-layout">
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+      <div>
+        <div class="panel-label">Your Idea</div>
+        <textarea id="ideaInput" placeholder="e.g. Carousel for parents about why kids forget what they learn — explain the forgetting curve — end with how spaced repetition fixes it"></textarea>
+        <div style="font-size:10px;color:var(--text2);margin-top:4px">Tip: Press <kbd>⌘ Enter</kbd> to generate</div>
+      </div>
+
+      <div>
+        <div class="panel-label">Format</div>
+        <div class="format-pills">
+          <button class="pill active" data-fmt="carousel">Carousel</button>
+          <button class="pill" data-fmt="post">Post 1:1</button>
+          <button class="pill" data-fmt="story">Story 9:16</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-label">Tone</div>
+        <div class="tone-grid">
+          <button class="tone-btn active" data-tone="warm">Warm &amp; caring</button>
+          <button class="tone-btn" data-tone="bold">Bold &amp; punchy</button>
+          <button class="tone-btn" data-tone="scientific">Science-backed</button>
+          <button class="tone-btn" data-tone="playful">Playful &amp; fun</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-label">Brand Palette</div>
+        <div class="palette-row">
+          <div class="swatch active" data-palette="orange" style="background:linear-gradient(135deg,#FF6B35,#7C3AED)" title="Cuemath Orange"></div>
+          <div class="swatch" data-palette="ocean" style="background:linear-gradient(135deg,#0EA5E9,#06B6D4)" title="Ocean Blue"></div>
+          <div class="swatch" data-palette="forest" style="background:linear-gradient(135deg,#059669,#10B981)" title="Forest Green"></div>
+          <div class="swatch" data-palette="sunset" style="background:linear-gradient(135deg,#F59E0B,#EF4444)" title="Sunset"></div>
+          <div class="swatch" data-palette="dark" style="background:linear-gradient(135deg,#1E293B,#475569)" title="Dark Mode"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:auto">
+        <button class="gen-btn" id="generateBtn" onclick="generateContent()">Generate Creative ↗</button>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel" id="rightPanel">
+      <div class="empty-state">
+        <div class="empty-icon">✦</div>
+        <div class="empty-title">Ready to create</div>
+        <div class="empty-sub">Describe your idea on the left and hit Generate Creative to see your social creative come to life.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PALETTES = {
+  orange:{bg:['#FF6B35','#7C3AED','#1A1A2E','#FF9A76','#E85D26'],name:'Cuemath'},
+  ocean:{bg:['#0EA5E9','#0369A1','#083344','#38BDF8','#0284C7'],name:'Ocean'},
+  forest:{bg:['#059669','#065F46','#022C22','#10B981','#047857'],name:'Forest'},
+  sunset:{bg:['#F59E0B','#EF4444','#7C2D12','#FBBF24','#DC2626'],name:'Sunset'},
+  dark:{bg:['#1E293B','#334155','#0F172A','#475569','#1E293B'],name:'Dark'}
+};
+
+const TONE_GUIDES = {
+  warm:'Warm, empathetic, like a wise friend. Use "your child", "we know", "trust".',
+  bold:'Bold, confident, punchy. Short sentences. Powerful verbs. No fluff.',
+  scientific:'Data-driven, cite concepts, use numbers and research references naturally.',
+  playful:'Fun, light, uses metaphors and analogies. Kid-friendly energy.'
+};
+
+const FORMAT_INSTRUCTIONS = {
+  carousel:`Create exactly 5 slides as a story: [0] Hook - attention-grabbing headline, [1] Problem - relatable parent pain point, [2] Explanation pt1 - core educational content, [3] Explanation pt2 - deeper insight, [4] Solution/CTA - Cuemath's answer with call to action`,
+  post:`Create exactly 1 slide: single strong visual-text post with punchy headline, supporting subtext, and subtle CTA`,
+  story:`Create exactly 3 slides: [0] Bold hook, [1] Key insight with data/fact, [2] CTA to visit Cuemath`
+};
+
+let state = {
+  format:'carousel', tone:'warm', palette:'orange',
+  slides:[], activeSlide:0, generating:false,
+  idea:'', hashtags:[], caption:''
+};
+
+// Event bindings
+document.querySelectorAll('.pill').forEach(p => p.onclick = () => {
+  state.format = p.dataset.fmt;
+  document.querySelectorAll('.pill').forEach(x => x.classList.toggle('active', x.dataset.fmt === state.format));
+});
+
+document.querySelectorAll('.tone-btn').forEach(b => b.onclick = () => {
+  state.tone = b.dataset.tone;
+  document.querySelectorAll('.tone-btn').forEach(x => x.classList.toggle('active', x.dataset.tone === state.tone));
+});
+
+document.querySelectorAll('.swatch').forEach(s => s.onclick = () => {
+  state.palette = s.dataset.palette;
+  document.querySelectorAll('.swatch').forEach(x => x.classList.toggle('active', x.dataset.palette === state.palette));
+  if (state.slides.length) renderSlides();
+});
+
+document.getElementById('ideaInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) generateContent();
+});
+
+// SVG patterns per slide type
+function getPattern(type, color) {
+  const p = {
+    hook:`<svg style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.12;pointer-events:none" viewBox="0 0 320 320"><circle cx="280" cy="40" r="90" fill="${color}"/><circle cx="30" cy="290" r="70" fill="${color}"/></svg>`,
+    stat:`<svg style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.1;pointer-events:none" viewBox="0 0 320 320"><rect x="200" y="0" width="2" height="320" fill="${color}"/><rect x="240" y="0" width="2" height="320" fill="${color}"/><rect x="280" y="0" width="2" height="320" fill="${color}"/><rect x="160" y="0" width="1" height="320" fill="${color}"/></svg>`,
+    insight:`<svg style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.1;pointer-events:none" viewBox="0 0 320 320"><polygon points="160,10 310,260 10,260" fill="${color}"/></svg>`,
+    solution:`<svg style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.1;pointer-events:none" viewBox="0 0 320 320"><circle cx="160" cy="160" r="130" fill="none" stroke="${color}" stroke-width="50"/></svg>`,
+    cta:`<svg style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.1;pointer-events:none" viewBox="0 0 320 320"><polygon points="0,0 320,0 320,320" fill="${color}"/><polygon points="0,320 0,180 200,320" fill="${color}"/></svg>`
+  };
+  return p[type] || p.hook;
+}
+
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function generateContent() {
+  const idea = document.getElementById('ideaInput').value.trim();
+  if (!idea) { document.getElementById('ideaInput').focus(); return; }
+  state.idea = idea;
+  state.generating = true;
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+
+  document.getElementById('rightPanel').innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <div class="loading-text">Crafting your creative...</div>
+    </div>`;
+
+  const prompt = `You are a social media content creator for Cuemath, a leading ed-tech platform helping children excel at math.
+Brand: educational, trustworthy, warm, parent-focused. Colors: orange (#FF6B35), purple (#7C3AED).
+Tone instruction: ${TONE_GUIDES[state.tone]}
+Format: ${FORMAT_INSTRUCTIONS[state.format]}
+
+User idea: "${idea}"
+
+IMPORTANT: Return ONLY raw JSON with no markdown fences, no explanation, nothing else.
+{
+  "slides": [
+    {
+      "id": 0,
+      "headline": "Short punchy headline, max 8 words",
+      "subtext": "Supporting explanation, max 20 words",
+      "emoji": "1 single relevant emoji",
+      "slide_type": "hook|stat|insight|solution|cta"
+    }
+  ],
+  "hashtags": ["#tag1","#tag2","#tag3","#tag4","#tag5"],
+  "caption": "Instagram caption for the full post, 2-3 engaging sentences, end with a question or CTA"
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    state.slides = parsed.slides || [];
+    state.hashtags = parsed.hashtags || [];
+    state.caption = parsed.caption || '';
+    state.activeSlide = 0;
+    renderSlides();
+  } catch(e) {
+    document.getElementById('rightPanel').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-title" style="color:#ef4444">Generation failed</div>
+        <div class="empty-sub">Please check your API connection and try again.</div>
+      </div>`;
+  }
+
+  state.generating = false;
+  btn.disabled = false;
+  btn.textContent = 'Generate Creative ↗';
+}
+
+function renderSlides() {
+  if (!state.slides.length) return;
+  const pal = PALETTES[state.palette];
+  const isStory = state.format === 'story';
+  const slideW = isStory ? 180 : 320;
+  const slideH = isStory ? 320 : 320;
+
+  const active = state.slides[state.activeSlide];
+  const activeBg = pal.bg[state.activeSlide % pal.bg.length];
+
+  let html = `
+  <div class="section-header">
+    <div class="panel-label" style="margin:0">Slides</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="slide-count-badge">${state.slides.length} slide${state.slides.length > 1 ? 's' : ''}</span>
+      <button class="export-btn primary" onclick="copyCaption()">Copy Caption</button>
+    </div>
+  </div>
+
+  <div class="slides-row">`;
+
+  state.slides.forEach((slide, i) => {
+    const bg = pal.bg[i % pal.bg.length];
+    html += `
+    <div class="slide-thumb${i === state.activeSlide ? ' active' : ''}" onclick="setActive(${i})">
+      <div class="thumb-inner" style="background:${bg};width:${isStory?60:96}px;height:${isStory?107:96}px">
+        ${getPattern(slide.slide_type || 'hook', '#fff')}
+        <span style="position:relative;z-index:1;font-size:7.5px;line-height:1.3">${esc(slide.headline)}</span>
+        <span class="thumb-num">${i + 1}</span>
+      </div>
+    </div>`;
+  });
+
+  if (state.format === 'carousel') {
+    html += `<button class="add-slide-btn" onclick="addSlide()">+ Add<br>Slide</button>`;
+  }
+
+  html += `</div>
+
+  <div class="preview-area">
+    <div class="slide-preview" id="slidePreview">
+      <div class="slide-canvas" id="activeCanvas" style="background:${activeBg};width:${slideW}px;height:${slideH}px">
+        ${getPattern(active.slide_type || 'hook', '#fff')}
+        <div class="slide-top-bar"></div>
+        <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;padding:0 4px">
+          <span style="font-size:32px;line-height:1">${active.emoji || '✦'}</span>
+          <div id="previewHeadline" style="font-family:'Syne',sans-serif;font-weight:800;font-size:${active.headline.length>45?'14px':active.headline.length>30?'17px':'21px'};color:#fff;line-height:1.2;letter-spacing:-0.4px">${esc(active.headline)}</div>
+          <div id="previewSubtext" style="font-size:12px;color:rgba(255,255,255,0.85);line-height:1.55;font-weight:300">${esc(active.subtext)}</div>
+          ${active.slide_type === 'cta' ? `<div style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.4);border-radius:20px;padding:6px 18px;font-size:11px;color:#fff;font-weight:500;margin-top:6px;font-family:'Syne',sans-serif">Start Learning → cuemath.com</div>` : ''}
+        </div>
+        <div class="watermark" style="color:rgba(255,255,255,0.45)">CUEMATH</div>
+        <div class="slide-accent-bar"></div>
+      </div>
+    </div>
+
+    <div class="edit-sidebar">
+      <div class="edit-card">
+        <div class="panel-label" style="margin-bottom:10px">Edit Slide ${state.activeSlide + 1}</div>
+        <div class="edit-field">
+          <label>Headline</label>
+          <input type="text" id="editHeadline" value="${esc(active.headline)}" oninput="liveEdit('headline', this.value)" />
+        </div>
+        <div class="edit-field">
+          <label>Subtext</label>
+          <textarea id="editSubtext" rows="3" oninput="liveEdit('subtext', this.value)">${esc(active.subtext)}</textarea>
+        </div>
+        <div class="edit-field">
+          <label>Emoji</label>
+          <input type="text" id="editEmoji" value="${esc(active.emoji||'✦')}" oninput="liveEdit('emoji', this.value)" style="width:60px" />
+        </div>
+        <div class="action-row" style="margin-top:4px">
+          <button class="sm-btn" onclick="regenSlide()">↻ Regen</button>
+          <button class="sm-btn danger" onclick="deleteSlide()">Delete</button>
+        </div>
+      </div>
+
+      <div class="edit-card">
+        <div class="panel-label" style="margin-bottom:8px">Caption</div>
+        <div class="caption-text">${esc(state.caption)}</div>
+        <div class="hashtags">${state.hashtags.join(' ')}</div>
+        <button class="sm-btn primary" style="width:100%;margin-top:10px" onclick="copyCaption()" id="copyBtn">Copy All ↗</button>
+      </div>
+
+      <div class="edit-card">
+        <div class="panel-label" style="margin-bottom:8px">Navigate</div>
+        <div class="nav-dots" style="margin-bottom:10px">
+          ${state.slides.map((s, i) => `<div class="dot${i === state.activeSlide ? ' active' : ''}" onclick="setActive(${i})" title="Slide ${i+1}"></div>`).join('')}
+        </div>
+        <div class="action-row">
+          <button class="sm-btn" onclick="setActive(state.activeSlide - 1)">← Prev</button>
+          <button class="sm-btn" onclick="setActive(state.activeSlide + 1)">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('rightPanel').innerHTML = html;
+}
+
+function setActive(i) {
+  if (i < 0 || i >= state.slides.length) return;
+  state.activeSlide = i;
+  renderSlides();
+}
+
+function liveEdit(field, val) {
+  state.slides[state.activeSlide][field] = val;
+  if (field === 'headline') {
+    const el = document.getElementById('previewHeadline');
+    if (el) { el.textContent = val; el.style.fontSize = val.length>45?'14px':val.length>30?'17px':'21px'; }
+    const thumb = document.querySelectorAll('.slide-thumb')[state.activeSlide];
+    if (thumb) { const sp = thumb.querySelector('span:not(.thumb-num)'); if (sp) sp.textContent = val; }
+  }
+  if (field === 'subtext') {
+    const el = document.getElementById('previewSubtext');
+    if (el) el.textContent = val;
+  }
+  if (field === 'emoji') {
+    const canvas = document.getElementById('activeCanvas');
+    if (canvas) { const sp = canvas.querySelector('span[style*="font-size:32px"]'); if (sp) sp.textContent = val; }
+  }
+}
+
+async function regenSlide() {
+  const slide = state.slides[state.activeSlide];
+  const btns = document.querySelectorAll('.action-row .sm-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[0].textContent = 'Working...';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages: [{
+          role: 'user',
+          content: `Rewrite this Cuemath social media slide with fresh copy. Keep the same slide_type but make it more engaging.
+Slide type: ${slide.slide_type}
+Original headline: ${slide.headline}
+Original subtext: ${slide.subtext}
+Overall topic: ${state.idea}
+Tone: ${state.tone}
+Return ONLY raw JSON (no markdown): {"headline":"max 8 words","subtext":"max 20 words","emoji":"1 emoji"}`
+        }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    state.slides[state.activeSlide] = { ...slide, ...parsed };
+    renderSlides();
+  } catch(e) {
+    btns.forEach(b => { b.disabled = false; });
+    btns[0].textContent = '↻ Regen';
+  }
+}
+
+function deleteSlide() {
+  if (state.slides.length <= 1) return;
+  state.slides.splice(state.activeSlide, 1);
+  state.activeSlide = Math.min(state.activeSlide, state.slides.length - 1);
+  renderSlides();
+}
+
+function addSlide() {
+  state.slides.push({
+    id: state.slides.length,
+    headline: 'New slide',
+    subtext: 'Tap to edit this slide content',
+    emoji: '✦',
+    slide_type: 'insight'
+  });
+  state.activeSlide = state.slides.length - 1;
+  renderSlides();
+}
+
+function copyCaption() {
+  const text = `${state.caption}\n\n${state.hashtags.join(' ')}`;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { if(btn) btn.textContent = orig; }, 1800);
+    }
+  });
+}
+</script>
+</body>
+</html>
